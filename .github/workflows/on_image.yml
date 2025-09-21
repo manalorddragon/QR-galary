@@ -1,0 +1,27 @@
+name: On image push -> generate QR
+
+on:
+  push:
+    paths:
+      - 'images/**'
+
+jobs:
+  generate_qr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install deps
+        run: pip install qrcode[pil] supabase pyjwt requests
+      - name: Run QR generator
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}      # if you plan to commit QR back
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.repository }}
+        run: |
+          python .github/scripts/generate_qr_for_new_images.py
